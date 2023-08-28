@@ -11,14 +11,10 @@
         {
             "name": "Rik Vos",
             "email": "Rik.Vos01@gmail.com",
-            "url": "http://rpvos.nl"
+            "url": "http://rpvos.nl",
+            "maintainer": true
         }
     ],
-    "export": {
-        "include": [
-            "include/*"
-        ]
-    },
     "license": "GNU 3",
     "homepage": "http://rpvos.nl",
     "dependencies": {},
