@@ -1,11 +1,11 @@
 {
     "name": "MAX485TTL",
     "version": "1.0.0",
-    "description": "Driver library for the LoRa module USR-LG206-P.",
-    "keywords": "LoRa",
+    "description": "Driver library for the LoRa module MAX485TTL.",
+    "keywords": "RS485",
     "repository": {
         "type": "git",
-        "url": "https://github.com/rpvos/USR-LG206-P.git"
+        "url": "https://github.com/rpvos/MAX485TTL.git"
     },
     "authors": [
         {
@@ -15,8 +15,8 @@
         }
     ],
     "export": {
-        "exclude": [
-            "test/*"
+        "include": [
+            "include/*"
         ]
     },
     "license": "GNU 3",
