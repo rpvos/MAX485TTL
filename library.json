@@ -1,4 +1,5 @@
 {
+    "$schema": "https://raw.githubusercontent.com/platformio/platformio-core/develop/platformio/assets/schema/library.json",
     "name": "MAX485TTL",
     "version": "1.0.0",
     "description": "Driver library for the LoRa module MAX485TTL.",
@@ -15,13 +16,19 @@
             "maintainer": true
         }
     ],
-    "license": "GNU 3",
-    "homepage": "http://rpvos.nl",
-    "dependencies": {},
+    "license": "GPL-3.0-or-later",
     "frameworks": [
         "Arduino"
     ],
     "platforms": [
         "atmelavr"
-    ]
+    ],
+    "headers": [
+        "MAX485TTL.h"
+    ],
+    "examples": [],
+    "dependencies": [],
+    "export": {},
+    "scripts": {},
+    "build": {}
 }

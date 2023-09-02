@@ -83,7 +83,7 @@ void RS485::set_mode(bool input)
 }
 
 // TODO add to read bytes
-String RS485::receive_rs485()
+char *RS485::receive_rs485()
 {
     // Enable listen
     digitalWrite(de_pin, LOW);

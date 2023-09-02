@@ -1,30 +1,46 @@
 #include "unity.h"
+#include <Arduino.h>
 #include "MAX485TTL.h"
 
-RS485 *rs485;
+#define BAUDRATE 9600
 
 void setUp(void)
 {
-    rs485 = new RS485(11, 12, &Serial2);
+    Serial1.begin(BAUDRATE);
+    Serial2.begin(BAUDRATE);
 }
 
 void tearDown(void)
 {
-    rs485 = 0;
+    Serial1.end();
+    Serial2.end();
 }
 
 void test_write_string(void)
 {
-    char *data = "TEST";
-    rs485->write(data);
-    String returned_data = rs485->receive_rs485();
+    // Construct the RS485 modules
+    RS485 *rs485_serial1 = new RS485(8, 9, &Serial1);
+    RS485 *rs485_serial2 = new RS485(10, 11, &Serial2);
 
-    TEST_ASSERT_EQUAL(data, returned_data.c_str());
+    // Set serial 1 as output and 2 as input
+    rs485_serial1->set_mode(false);
+    rs485_serial2->set_mode(true);
+
+    // Data that will be send
+    char const *data = "TEST";
+
+    // Send via serial 1
+    rs485_serial1->write(data);
+    // Receive via serial 2
+    char *received_data = rs485_serial2->receive_rs485();
+
+    // Assert the received data
+    TEST_ASSERT_EQUAL(data, received_data);
 }
 
 void test_print(void)
 {
-    rs485->print(0xFF, HEX);
+    TEST_IGNORE_MESSAGE("This test needs to be implemented");
 }
 
 int runUnityTests(void)

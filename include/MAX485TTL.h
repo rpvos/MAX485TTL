@@ -29,7 +29,7 @@ public:
     using Print::print;
     using Print::write;
 
-    String receive_rs485();
+    char *receive_rs485();
 };
 
 #endif
