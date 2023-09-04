@@ -1,7 +1,9 @@
-#include "unity.h"
+
 #include <Arduino.h>
 #include "MAX485TTL.h"
+#include <unity.h>
 
+// TODO test for diffrent baudrates
 #define BAUDRATE 9600
 
 void setUp(void)
