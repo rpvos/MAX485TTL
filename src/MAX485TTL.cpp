@@ -1,64 +1,59 @@
 #include <Arduino.h>
 #include <max485ttl.h>
 
-RS485::RS485(uint8_t de_pin, uint8_t re_pin)
-{
-    RS485(de_pin, re_pin, 64);
-};
-
-RS485::RS485(uint8_t de_pin, uint8_t re_pin, uint16_t buffersize)
-{
-    RS485(de_pin, re_pin, buffersize, 1000);
-};
-
-RS485::RS485(uint8_t de_pin, uint8_t re_pin, uint16_t buffersize, uint16_t timeout_millis)
+RS485::RS485(uint8_t de_pin, uint8_t re_pin, char end_marker = '\n', uint8_t buffersize = 64)
 {
     this->de_pin = de_pin;
     this->re_pin = re_pin;
-    this->serial = 0;
+    this->serial = nullptr;
     this->buffersize = buffersize;
-    this->buffer = new char[buffersize];
-    this->timeout_millis = timeout_millis;
+    this->buffer = new char[this->buffersize];
     this->newData = false;
+    this->endMarker = end_marker;
+    this->index = 0;
 
-    // Set pins to output
     pinMode(de_pin, OUTPUT);
     pinMode(re_pin, OUTPUT);
 
-    mode_output = -1;
+    mode = INPUT;
     set_mode(INPUT);
 };
 
 RS485::~RS485()
 {
-    delete this->buffer;
+    delete[] this->buffer;
     this->serial = nullptr;
 };
 
 void RS485::set_serial(Stream *serial)
 {
+
     this->serial = serial;
 }
 
-void RS485::set_mode(uint8_t mode)
+void RS485::set_mode(uint8_t new_mode)
 {
-    if (mode_output == mode)
+    if (mode == new_mode)
     {
         return;
     }
 
-    if (mode == INPUT)
+    if (new_mode == INPUT)
     {
         digitalWrite(de_pin, LOW);
         digitalWrite(re_pin, LOW);
-        mode_output = mode;
+        mode = new_mode;
+        return;
     }
-    else if (mode == OUTPUT)
+    else if (new_mode == OUTPUT)
     {
         digitalWrite(de_pin, HIGH);
         digitalWrite(re_pin, HIGH);
-        mode_output = mode;
+        mode = new_mode;
+        return;
     }
+
+    return;
 }
 
 int RS485::available(void)
@@ -74,6 +69,7 @@ int RS485::available(void)
 
 int RS485::peek(void)
 {
+    set_mode(INPUT);
     if (serial)
     {
         return serial->peek();
@@ -93,25 +89,6 @@ int RS485::read(void)
     return -1;
 }
 
-int RS485::availableForWrite(void)
-{
-    if (serial)
-    {
-        return serial->availableForWrite();
-    }
-
-    return -1;
-}
-
-void RS485::flush(void)
-{
-    set_mode(OUTPUT);
-    if (serial)
-    {
-        return serial->flush();
-    }
-}
-
 size_t RS485::write(uint8_t data)
 {
     set_mode(OUTPUT);
@@ -123,46 +100,66 @@ size_t RS485::write(uint8_t data)
     return -1;
 }
 
-size_t RS485::print(String data)
+size_t RS485::write(const uint8_t *buffer, size_t size)
 {
-    set_mode(OUTPUT);
-    if (serial)
+    size_t n = 0;
+    while (size--)
     {
-        return serial->print(data);
+        int response = write(*buffer++);
+        if (response)
+        {
+            n++;
+        }
+        else if (response == -1)
+        {
+            return -1;
+        }
+        else
+        {
+            break;
+        }
     }
-
-    return -1;
+    return n;
 }
 
-bool RS485::isNewData(void)
+size_t RS485::write(const char *buffer, size_t size)
+{
+    return write((const uint8_t *)buffer, size);
+}
+
+size_t RS485::print(const String &string)
+{
+    return write(string.c_str(), string.length());
+}
+
+bool RS485::is_new_data(void)
 {
     return newData;
 }
 
-String RS485::getNewData(void)
+const char *RS485::get_new_data(void)
 {
     if (newData)
     {
         newData = false;
-        return String(buffer);
+        return buffer;
     }
 
     return "";
 }
 
-void RS485::receive(void)
+void RS485::update(void)
 {
-    static byte index = 0;
-    char endMarker = '\n';
-    char newChar;
+    set_mode(INPUT);
+    char rc;
 
-    while (Serial.available() > 0 && newData == false)
+    while (available() > 0 && newData == false)
     {
-        newChar = Serial.read();
+        rc = read();
 
-        if (newChar != endMarker)
+        if (rc != endMarker)
         {
-            buffer[index] = newChar;
+            buffer[index] = rc;
             index++;
             if (index >= buffersize)
             {
@@ -176,41 +173,4 @@ void RS485::receive(void)
             newData = true;
         }
     }
-}
-
-// String RS485::receive_rs485(void)
-// {
-//     set_mode(INPUT);
-
-//     if (!serial)
-//     {
-//         return "";
-//     }
-
-//     // Wait for a message to be received
-//     unsigned long start = millis();
-//     while (!serial->available())
-//     {
-//         if (millis() - start > timeout_millis)
-//             return new char[0];
-//     }
-
-//     if (serial->available())
-//     {
-//         int length = serial->readBytes(buffer, buffersize);
-//         if (length > 0)
-//         {
-//             // Coppy the data out of the buffer
-//             char *data = new char[length + 1];
-//             memcpy(data, buffer, length);
-
-//             // Add null termination to make it a string
-//             data[length] = '\0';
-//             String stringData(data);
-//             delete[] data;
-//             return stringData;
-//         }
-//     }
-
-//     return "";
-// }
+};

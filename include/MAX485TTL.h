@@ -1,33 +1,31 @@
+/**
+ * @file max485ttl.h
+ * @author Rik Vos (rpvos.nl)
+ * @brief Library used to send and recveive serial communication using the MAX485TTL modules
+ * @version 0.1
+ * @date 2023-09-18
+ *
+ * @copyright Copyright (c) 2023
+ *
+ */
+
 #ifndef RS485_H
 #define RS485_H
 
 #include <Arduino.h>
 
 /// @brief
-class RS485 : private Stream
+class RS485 : Stream
 {
 public:
-    // using Print::print;
-    // using Print::println;
-    // using Stream::readString;
-
-    /// @brief Constructor using only the necessary
-    /// @param de_pin Driver output enable pin number
-    /// @param re_pin Receiver output enable pin number
-    RS485(uint8_t de_pin, uint8_t re_pin);
-
-    /// @brief Constructor with buffersize setting
-    /// @param de_pin Driver output enable pin number
-    /// @param re_pin Receiver output enable pin number
-    /// @param buffersize Size of wich the buffer must be
-    RS485(uint8_t de_pin, uint8_t re_pin, uint16_t buffersize);
-
-    /// @brief Constructor with timeout setting
-    /// @param de_pin Driver output enable pin number
-    /// @param re_pin Receiver output enable pin number
-    /// @param buffersize Size of wich the buffer must be
-    /// @param timeout_millis Timeout of input stream for a message
-    RS485(uint8_t de_pin, uint8_t re_pin, uint16_t buffersize, uint16_t timeout_millis);
+    /**
+     * @brief Constructor using only the necessary
+     * @param de_pin Driver output enable pin number
+     * @param re_pin Receiver output enable pin number
+     * @param end_marker Token which is used to determine end of input
+     * @param buffersize size of buffer used to store input, any input string exceeding this will be terminated on buffersize
+     */
+    RS485(uint8_t de_pin, uint8_t re_pin, char end_marker = '\n', uint8_t buffersize = 64);
 
     /**
      * @brief Destroy the RS485 object
@@ -44,52 +42,104 @@ public:
      */
     void set_serial(Stream *serial);
 
-    /// @brief Function used to toggle the DE and RE pin to let the module accept incomming data
-    /// @param mode INPUT(0) or OUTPUT(1)
+    /**
+     * @brief Function used to toggle the DE and RE pin to let the module accept incomming data
+     *
+     * @param mode INPUT(0) or OUTPUT(1)
+     */
     void set_mode(uint8_t);
 
-    /// @brief Function used to get the number of bytes available in de input buffer which holds 64 bytes
-    /// @return Number of bytes available, if stream not available -1
+    /**
+     * @brief Function used to get the number of bytes available in de input buffer which holds 64 bytes
+     *
+     * @return Number of bytes available, if stream not available -1
+     */
     int available(void);
 
-    /// @brief Function used to look at the first byte of the input buffer without taking it out
-    /// @return First character of the buffer, if stream not available -1
-    int peek(void);
-
-    /// @brief Function used to read the first byte of the incomming data
-    /// @return first byte or -1 if not available
+    /**
+     * @brief Function used to read the first byte of the incomming data
+     *
+     * @return first byte or -1 if not available
+     */
     int read(void);
 
-    /// @brief Function used to get the number of bytes available for writing in the serial buffer before blocking
-    /// @return Number of bytes (characters), if stream not available -1
-    int availableForWrite(void);
+    /**
+     * @brief Function used to look at the first byte of the input buffer without taking it out
+     *
+     * @return First character of the buffer, if stream not available -1
+     */
+    int peek(void);
 
-    /// @brief Function that is a blocking call to wait for all serial data to be sent
-    void flush(void);
+    /**
+     * @brief Function to send a single byte
+     *
+     * @param data the byte that will be sent
+     * @return true if succesfull, if stream not available -1
+     */
+    size_t write(uint8_t data);
 
-    /// @brief Function to send a single byte or multiple
-    /// @param data is the byte that will be sent
-    /// @return Amount of bytes written, if stream not available -1
-    size_t write(uint8_t);
+    /**
+     * @brief Function to send a buffer of bytes
+     *
+     * @param buffer is the byte array that will be sent
+     * @param size is the size of the sent bytes
+     * @return Amount of bytes written, if stream not available -1
+     */
+    size_t write(const uint8_t *buffer, size_t size);
 
-    size_t print(String);
+    /**
+     * @brief Function to send a buffer of bytes
+     *
+     * @param buffer is the byte array that will be sent
+     * @param size is the size of the sent bytes
+     * @return Amount of bytes written, if stream not available -1
+     */
+    size_t write(const char *buffer, size_t size);
 
-    /// @brief Function used to read input data
-    void receive(void);
+    /**
+     * @brief Function to send a String
+     *
+     * @param string is the chars being sent
+     * @return Amount of bytes written, if stream not available -1
+     */
+    size_t print(const String &string);
 
-    bool isNewData(void);
+    /**
+     * @brief Function used to know if there is new data available
+     *
+     * @return true, function get_new_data() can be used to get the new data
+     * @return false, no new data has been received
+     */
+    bool is_new_data(void);
 
-    String getNewData(void);
+    /**
+     * @brief Get the new data
+     * Data must be processed immediately because pointer will be recycled
+     *
+     * @return const char* carrying the data
+     */
+    const char *get_new_data(void);
+
+    /**
+     * @brief Function must be called to retrieve input
+     * Must be called often enough so buffer will not overflow
+     *
+     */
+    void update(void);
 
 private:
-    bool newData;
+    Stream *serial;
 
-    uint8_t mode_output;
     uint8_t de_pin;
     uint8_t re_pin;
-    uint16_t buffersize;
+
+    uint8_t mode;
+
+    bool newData;
+    byte index;
+    char endMarker;
+    uint8_t buffersize;
     uint16_t timeout_millis;
-    Stream *serial;
     char *buffer;
 };
 
