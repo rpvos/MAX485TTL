@@ -16,15 +16,8 @@
 
 #define DE_PORT 2
 #define RE_PORT 3
-
-// Use the correct register for the ports
-#if (RE_PORT < 8 && DE_PORT < 8)
-#define PINregister DDRD
-#define PORTregister PORTD
-#elif (RE_PORT < 14 && DE_PORT < 14)
-#define PINregister DDRB
-#define PORTregister PORTB
-#endif
+#define DE_MEASURING_PORT 4
+#define RE_MEASURING_PORT 5
 
 /**
  * @brief Stream used as mock for serial stream
@@ -46,6 +39,9 @@ void setUp(void)
 {
   stream = new MemoryStream();
   rs = new RS485(DE_PORT, RE_PORT, stream);
+
+  pinMode(DE_MEASURING_PORT, INPUT);
+  pinMode(RE_MEASURING_PORT, INPUT);
 }
 
 /**
@@ -61,27 +57,16 @@ void tearDown(void)
 /**
  * @brief Helper function used to determine if the pins are set high
  *
- * @return true if both Pin RE_PORT and DE_PORT are set high
- * @return false if either Pin RE_PORT and DE_PORT is not set high
+ * @param value LOW or HIGH
+ * @return true if both are set to value
+ * @return false if on or both is not set to value
  */
-bool isSetHigh(void)
+bool isSet(int value)
 {
-  uint8_t mask = _BV(RE_PORT) | _BV(DE_PORT);
-  bool isSetHigh = ((PORTregister)&mask == mask);
-  return isSetHigh;
-}
+  int re_port = digitalRead(RE_MEASURING_PORT);
+  int de_port = digitalRead(RE_MEASURING_PORT);
 
-/**
- * @brief Helper function used to determine if the pins are set low
- *
- * @return true if both Pin RE_PORT and DE_PORT are set low
- * @return false if either Pin RE_PORT and DE_PORT is not set low
- */
-bool isSetLow(void)
-{
-  uint8_t mask = _BV(RE_PORT) | _BV(DE_PORT);
-  bool isSetHigh = ((~PORTregister) & mask == mask);
-  return isSetHigh;
+  return (re_port == value) && (de_port == value);
 }
 
 /**
@@ -90,25 +75,23 @@ bool isSetLow(void)
  */
 void test_ports()
 {
-  // Check for pin is set to output
-  uint8_t mask = _BV(RE_PORT) | _BV(DE_PORT);
-  bool isSetAsOutput = (PINregister & mask == mask);
-  TEST_ASSERT_TRUE_MESSAGE(isSetAsOutput, "Pins are not set to OUPUT on initialisation");
-
   // Check for initialisation as input
-  TEST_ASSERT_TRUE_MESSAGE(isSetLow(), "Pins are not set to LOW on initialisation");
+  TEST_ASSERT_TRUE_MESSAGE(isSet(LOW), "Pins are not set to LOW on initialisation");
 
   // Check for set to output
   rs->SetMode(OUTPUT);
-  TEST_ASSERT_TRUE_MESSAGE(isSetHigh(), "Pins are not set to HIGH");
+  TEST_ASSERT_TRUE_MESSAGE(isSet(HIGH), "Pins are not set to HIGH");
 
   // Check for set to input
   rs->SetMode(INPUT);
-  TEST_ASSERT_TRUE_MESSAGE(isSetLow(), "Pins are not set to LOW");
+  TEST_ASSERT_TRUE_MESSAGE(isSet(LOW), "Pins are not set to LOW");
 
   // Check for repeated set
   rs->SetMode(INPUT);
-  TEST_ASSERT_TRUE_MESSAGE(isSetLow(), "Pins are not set to LOW after repeated set command");
+  TEST_ASSERT_TRUE_MESSAGE(isSet(LOW), "Pins are not set to LOW after repeated set command");
+
+  rs->SetMode(2);
+  TEST_ASSERT_TRUE_MESSAGE(isSet(LOW), "Pins are changed after given wrong command");
 }
 
 /**
@@ -118,15 +101,15 @@ void test_ports()
 void test_write(void)
 {
   char input = 'A';
-  TEST_ASSERT_TRUE_MESSAGE(isSetLow(), "Initial state is not receiving");
+  TEST_ASSERT_TRUE_MESSAGE(isSet(LOW), "Initial state is not receiving");
   rs->write(input);
-  TEST_ASSERT_TRUE_MESSAGE(isSetHigh(), "State is not changed for sending data");
+  TEST_ASSERT_TRUE_MESSAGE(isSet(HIGH), "State is not changed for sending data");
   rs->SetMode(INPUT);
 
   char output;
   if (rs->available())
   {
-    TEST_ASSERT_TRUE_MESSAGE(isSetLow(), "State is not changed to receiving data");
+    TEST_ASSERT_TRUE_MESSAGE(isSet(LOW), "State is not changed to receiving data");
     output = rs->read();
   }
   TEST_ASSERT_EQUAL_CHAR_MESSAGE(input, output, "Byte is not written correctly");
@@ -139,18 +122,17 @@ void test_write(void)
 void test_print(void)
 {
   String input = "Hello world!";
-  TEST_ASSERT_TRUE_MESSAGE(isSetLow(), "Initial state is not receiving");
   rs->print(input);
-  TEST_ASSERT_TRUE_MESSAGE(isSetHigh(), "State is not changed for sending data");
+  TEST_ASSERT_TRUE_MESSAGE(isSet(HIGH), "State is not changed for sending data");
   rs->SetMode(INPUT);
 
   String output;
   if (rs->available())
   {
-    TEST_ASSERT_TRUE_MESSAGE(isSetLow(), "State is not changed to receiving data");
+    TEST_ASSERT_TRUE_MESSAGE(isSet(LOW), "State is not changed to receiving data");
     output = rs->readString();
   }
-  TEST_ASSERT_EQUAL_CHAR_MESSAGE(input.c_str(), output.c_str(), "String is not written correctly");
+  TEST_ASSERT_EQUAL_STRING_MESSAGE(input.c_str(), output.c_str(), "String is not written correctly");
 }
 
 /**

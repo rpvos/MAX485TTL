@@ -16,7 +16,7 @@ void loop()
 {
     String input = "AAAABBBBCCCC\n";
     rs->print(input);
-    rs->set_mode(INPUT);
+    rs->SetMode(INPUT);
     delay(1000);
 
     if (rs->available())
