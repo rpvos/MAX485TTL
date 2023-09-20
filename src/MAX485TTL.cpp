@@ -150,6 +150,15 @@ void RS485::ReadIntoBuffer(void)
         }
         else
         {
+            // Check for edge case of \r\n as two characters
+            if (buffer_cursor_ > 0)
+            {
+                if (buffer_[buffer_cursor_ - 1] == '\r')
+                {
+                    buffer_[buffer_cursor_ - 1] = '\0'; // terminate the string on \r
+                }
+            }
+
             buffer_[buffer_cursor_] = '\0'; // terminate the string
             buffer_cursor_ = 0;
             data_in_buffer_ = true;

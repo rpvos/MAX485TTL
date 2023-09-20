@@ -175,23 +175,69 @@ void test_available(void)
 {
   String input = "Hello world!";
 
-  // Available should return 0 because nothing is in the read buffer
-  TEST_ASSERT_FALSE(rs->available());
+  TEST_ASSERT_FALSE_MESSAGE(rs->available(), "Available should return 0 because nothing is in the read buffer");
 
   rs->print(input);
 
-  // Available should return amount of bytes in the read buffer
-  TEST_ASSERT_EQUAL(input.length(), rs->available());
+  TEST_ASSERT_EQUAL_MESSAGE(input.length(), rs->available(), "Available should return amount of bytes in the read buffer");
 
-  char c = rs->read();
+  // Retrieve 1 character from read buffer
+  rs->read();
 
-  // Available should return length -1 because one char is read
-  TEST_ASSERT_EQUAL(input.length() - 1, rs->available());
+  TEST_ASSERT_EQUAL_MESSAGE(input.length() - 1, rs->available(), "Available should return length -1 because one char is read");
 
-  String s = rs->readString();
+  // Read whole buffer
+  rs->readString();
 
-  // Available should return 0 because all chars are read
-  TEST_ASSERT_EQUAL(0, rs->available());
+  TEST_ASSERT_EQUAL_MESSAGE(0, rs->available(), "Available should return 0 because all chars are read");
+}
+
+void test_ReadBuffer(void)
+{
+  String input = "Hello world!";
+
+  if (rs->IsDataInBuffer())
+  {
+    TEST_FAIL_MESSAGE("Buffer should be empty on initialisation");
+  }
+
+  rs->ReadIntoBuffer();
+
+  if (rs->IsDataInBuffer())
+  {
+    TEST_FAIL_MESSAGE("No data should be in buffer because nothing was put in");
+  }
+
+  rs->println(input);
+
+  if (rs->IsDataInBuffer())
+  {
+    TEST_FAIL_MESSAGE("Buffer should be empty while not read into buffer yet");
+  }
+
+  rs->ReadIntoBuffer();
+
+  if (rs->IsDataInBuffer())
+  {
+    String output = rs->ReadBuffer();
+    TEST_ASSERT_EQUAL_STRING_MESSAGE(input.c_str(), output.c_str(), "Reading buffer did not return input");
+  }
+  else
+  {
+    TEST_FAIL_MESSAGE("Data was not detected in buffer");
+  }
+
+  if (rs->IsDataInBuffer())
+  {
+    TEST_FAIL_MESSAGE("No data should be in buffer after reading");
+  }
+
+  rs->ReadIntoBuffer();
+
+  if (rs->IsDataInBuffer())
+  {
+    TEST_FAIL_MESSAGE("No data should be in buffer because nothing was put in");
+  }
 }
 
 /**
@@ -212,6 +258,7 @@ void setup()
   RUN_TEST(test_peek);
   RUN_TEST(test_read);
   RUN_TEST(test_available);
+  RUN_TEST(test_ReadBuffer);
 
   UNITY_END(); // Stop unit testing
 }
