@@ -1,7 +1,18 @@
+/**
+ * @file test_max485ttl.cpp
+ * @author rpvos (mr.rv.asd@gmail.com)
+ * @brief Unit tests for the max485ttl.cpp
+ * @version 0.1
+ * @date 2023-09-20
+ *
+ * @copyright Copyright (c) 2023
+ *
+ */
+
 #include <Arduino.h>
 #include <unity.h>
 #include "max485ttl.h"
-#include "memoryStream.h"
+#include "memory_stream.h"
 
 #define DE_PORT 2
 #define RE_PORT 3
@@ -88,15 +99,15 @@ void test_ports()
   TEST_ASSERT_TRUE_MESSAGE(isSetLow(), "Pins are not set to LOW on initialisation");
 
   // Check for set to output
-  rs->set_mode(OUTPUT);
+  rs->SetMode(OUTPUT);
   TEST_ASSERT_TRUE_MESSAGE(isSetHigh(), "Pins are not set to HIGH");
 
   // Check for set to input
-  rs->set_mode(INPUT);
+  rs->SetMode(INPUT);
   TEST_ASSERT_TRUE_MESSAGE(isSetLow(), "Pins are not set to LOW");
 
   // Check for repeated set
-  rs->set_mode(INPUT);
+  rs->SetMode(INPUT);
   TEST_ASSERT_TRUE_MESSAGE(isSetLow(), "Pins are not set to LOW after repeated set command");
 }
 
@@ -110,7 +121,7 @@ void test_write(void)
   TEST_ASSERT_TRUE_MESSAGE(isSetLow(), "Initial state is not receiving");
   rs->write(input);
   TEST_ASSERT_TRUE_MESSAGE(isSetHigh(), "State is not changed for sending data");
-  rs->set_mode(INPUT);
+  rs->SetMode(INPUT);
 
   char output;
   if (rs->available())
@@ -131,7 +142,7 @@ void test_print(void)
   TEST_ASSERT_TRUE_MESSAGE(isSetLow(), "Initial state is not receiving");
   rs->print(input);
   TEST_ASSERT_TRUE_MESSAGE(isSetHigh(), "State is not changed for sending data");
-  rs->set_mode(INPUT);
+  rs->SetMode(INPUT);
 
   String output;
   if (rs->available())
