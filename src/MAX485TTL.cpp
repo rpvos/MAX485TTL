@@ -168,6 +168,8 @@ void RS485::ReadIntoBuffer(void)
 
 void RS485::WaitForInput(int TimeOutInMillisecond)
 {
+    SetMode(INPUT);
+
     int time = millis();
     while (((millis() - time) < TimeOutInMillisecond) && !available())
     {
