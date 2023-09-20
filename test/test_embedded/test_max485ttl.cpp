@@ -136,6 +136,27 @@ void test_print(void)
 }
 
 /**
+ * @brief Testing the print function
+ *
+ */
+void test_println(void)
+{
+  String input = "Hello world!";
+  rs->println(input);
+  TEST_ASSERT_TRUE_MESSAGE(isSet(HIGH), "State is not changed for sending data");
+  rs->SetMode(INPUT);
+
+  String output;
+  if (rs->available())
+  {
+    TEST_ASSERT_TRUE_MESSAGE(isSet(LOW), "State is not changed to receiving data");
+    output = rs->readString();
+  }
+  input += "\r\n";
+  TEST_ASSERT_EQUAL_STRING_MESSAGE(input.c_str(), output.c_str(), "String is not written correctly");
+}
+
+/**
  * @brief Testing the peek method
  *
  */
@@ -165,6 +186,20 @@ void test_read(void)
   char c2 = (char)rs->read();
 
   TEST_ASSERT_EQUAL_CHAR_MESSAGE(input.c_str()[1], c2, "Read did not retrieve seccond character correctly");
+}
+
+void test_read_string(void)
+{
+  String input = "Hello world!";
+  rs->print(input);
+
+  String output = rs->readString();
+
+  TEST_ASSERT_EQUAL_STRING_MESSAGE(input.c_str(), output.c_str(), "ReadString did not retrieve line correctly");
+
+  String empty = rs->readString();
+
+  TEST_ASSERT_EQUAL_STRING_MESSAGE("", empty.c_str(), "Read did not retrieve seccond character correctly");
 }
 
 /**
@@ -238,6 +273,20 @@ void test_ReadBuffer(void)
   {
     TEST_FAIL_MESSAGE("No data should be in buffer because nothing was put in");
   }
+
+  String input2 = "Hello outerspace!";
+  rs->println(input2);
+  rs->ReadIntoBuffer();
+
+  if (rs->IsDataInBuffer())
+  {
+    String output = rs->ReadBuffer();
+    TEST_ASSERT_EQUAL_STRING_MESSAGE(input2.c_str(), output.c_str(), "Reading buffer did not return input");
+  }
+  else
+  {
+    TEST_FAIL_MESSAGE("Data was not detected in buffer after writing for the second time");
+  }
 }
 
 /**
@@ -255,8 +304,10 @@ void setup()
   RUN_TEST(test_ports);
   RUN_TEST(test_write);
   RUN_TEST(test_print);
+  RUN_TEST(test_println);
   RUN_TEST(test_peek);
   RUN_TEST(test_read);
+  RUN_TEST(test_read_string);
   RUN_TEST(test_available);
   RUN_TEST(test_ReadBuffer);
 
