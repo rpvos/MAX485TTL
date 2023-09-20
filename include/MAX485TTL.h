@@ -99,6 +99,13 @@ public:
      */
     void ReadIntoBuffer(void);
 
+    /**
+     * @brief Function used to wait for a input signal
+     *
+     * @param TimeOutInMillis duration of the maximum wait in Millisecond
+     */
+    void WaitForInput(int TimeOutInMillisecond = 2000);
+
 private:
     Stream *serial_;
 
