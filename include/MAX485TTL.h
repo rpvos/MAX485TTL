@@ -71,6 +71,8 @@ public:
      */
     virtual size_t write(uint8_t data);
 
+    using Print::write;
+
     /**
      * @brief Flushes the write buffer and set mode to input.
      *
@@ -96,8 +98,16 @@ public:
      * @brief Function used to read the stream and put the data into the buffer.
      * This function should be called often when large amount of data is expected so the stream buffer doesn't overflow.
      *
+     * @return int Amount of bytes received
      */
-    void ReadIntoBuffer(void);
+    int ReadIntoBuffer(void);
+
+    /**
+     * @brief Get the Buffer pointer
+     *
+     * @return const char* pointing to the buffer
+     */
+    const char *GetBuffer(void);
 
     /**
      * @brief Function used to wait for a input signal

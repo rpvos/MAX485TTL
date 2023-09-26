@@ -236,13 +236,14 @@ void test_ReadBuffer(void)
     TEST_FAIL_MESSAGE("Buffer should be empty on initialisation");
   }
 
-  rs->ReadIntoBuffer();
+  int amount = rs->ReadIntoBuffer();
 
-  if (rs->IsDataInBuffer())
+  if (rs->IsDataInBuffer() || amount != 0)
   {
     TEST_FAIL_MESSAGE("No data should be in buffer because nothing was put in");
   }
 
+  // Send input
   rs->println(input);
 
   if (rs->IsDataInBuffer())
@@ -250,9 +251,9 @@ void test_ReadBuffer(void)
     TEST_FAIL_MESSAGE("Buffer should be empty while not read into buffer yet");
   }
 
-  rs->ReadIntoBuffer();
+  amount = rs->ReadIntoBuffer();
 
-  if (rs->IsDataInBuffer())
+  if (rs->IsDataInBuffer() && amount != 0)
   {
     String output = rs->ReadBuffer();
     TEST_ASSERT_EQUAL_STRING_MESSAGE(input.c_str(), output.c_str(), "Reading buffer did not return input");
@@ -267,18 +268,18 @@ void test_ReadBuffer(void)
     TEST_FAIL_MESSAGE("No data should be in buffer after reading");
   }
 
-  rs->ReadIntoBuffer();
+  amount = rs->ReadIntoBuffer();
 
-  if (rs->IsDataInBuffer())
+  if (rs->IsDataInBuffer() || amount != 0)
   {
     TEST_FAIL_MESSAGE("No data should be in buffer because nothing was put in");
   }
 
   String input2 = "Hello outerspace!";
   rs->println(input2);
-  rs->ReadIntoBuffer();
+  amount = rs->ReadIntoBuffer();
 
-  if (rs->IsDataInBuffer())
+  if (rs->IsDataInBuffer() && amount != 0)
   {
     String output = rs->ReadBuffer();
     TEST_ASSERT_EQUAL_STRING_MESSAGE(input2.c_str(), output.c_str(), "Reading buffer did not return input");
@@ -288,6 +289,9 @@ void test_ReadBuffer(void)
     TEST_FAIL_MESSAGE("Data was not detected in buffer after writing for the second time");
   }
 }
+
+// TODO add function to test GetBuffer
+// TODO add function to test write(buffer, length)
 
 /**
  * @brief Entry point to start all tests

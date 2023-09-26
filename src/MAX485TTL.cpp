@@ -130,18 +130,25 @@ const char *RS485::ReadBuffer(void)
     return "";
 }
 
-void RS485::ReadIntoBuffer(void)
+const char *RS485::GetBuffer(void)
+{
+    return buffer_;
+}
+
+int RS485::ReadIntoBuffer(void)
 {
     SetMode(INPUT);
-    char rc;
+    int amount_of_chars = 0;
+    char read_character;
 
     while (available() > 0 && data_in_buffer_ == false)
     {
-        rc = read();
+        read_character = read();
+        amount_of_chars++;
 
-        if (rc != end_marker_)
+        if (read_character != end_marker_)
         {
-            buffer_[buffer_cursor_] = rc;
+            buffer_[buffer_cursor_] = read_character;
             buffer_cursor_++;
             if (buffer_cursor_ >= buffer_size_)
             {
@@ -164,6 +171,8 @@ void RS485::ReadIntoBuffer(void)
             data_in_buffer_ = true;
         }
     }
+
+    return amount_of_chars;
 };
 
 void RS485::WaitForInput(int TimeOutInMillisecond)
