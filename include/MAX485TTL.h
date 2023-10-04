@@ -30,6 +30,13 @@ public:
     RS485(uint8_t de_pin, uint8_t re_pin, Stream *serial, char end_marker = '\n', uint8_t buffer_size = 64);
 
     /**
+     * @brief Copy constructor
+     *
+     * @param rs485 which settings will be used for new value
+     */
+    RS485(const RS485 &rs485);
+
+    /**
      * @brief Destroy the RS485 object.
      * Delete buffer and remove pointers.
      */
@@ -47,21 +54,21 @@ public:
      *
      * @return Number of bytes available, if stream not available -1.
      */
-    virtual int available(void);
+    virtual int available(void) override;
 
     /**
      * @brief Function used to read the first byte of the incomming data.
      *
      * @return first byte or -1 if not available.
      */
-    virtual int read(void);
+    virtual int read(void) override;
 
     /**
      * @brief Function used to look at the first byte of the input buffer without taking it out.
      *
      * @return First character of the buffer, if stream not available -1.
      */
-    virtual int peek(void);
+    virtual int peek(void) override;
 
     /**
      * @brief Function to send a single byte.
@@ -69,7 +76,7 @@ public:
      * @param data the byte that will be sent.
      * @return true if succesfull, if stream not available -1.
      */
-    virtual size_t write(uint8_t data);
+    virtual size_t write(uint8_t data) override;
 
     using Print::write;
 
@@ -77,7 +84,7 @@ public:
      * @brief Flushes the write buffer and set mode to input.
      *
      */
-    virtual void flush(void);
+    virtual void flush(void) override;
 
     /**
      * @brief Function to check if data is stored in buffer.
@@ -114,7 +121,15 @@ public:
      *
      * @param TimeOutInMillis duration of the maximum wait in Millisecond
      */
-    void WaitForInput(int TimeOutInMillisecond = 2000);
+    void WaitForInput(unsigned long TimeOutInMillisecond = 2000);
+
+    /**
+     * @brief Overload = operator because use of dynamic memory
+     *
+     * @param otherRS485 to which it is compared
+     * @return RS485 copy of object
+     */
+    RS485 &operator=(const RS485 &otherRS485);
 
 private:
     Stream *serial_;

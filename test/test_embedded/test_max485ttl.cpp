@@ -290,8 +290,67 @@ void test_ReadBuffer(void)
   }
 }
 
-// TODO add function to test GetBuffer
-// TODO add function to test write(buffer, length)
+void test_GetBuffer(void)
+{
+  const char *bufferPointer = rs->GetBuffer();
+
+  String s = "AAAABBBBCCCCDDDD";
+  rs->print(s);
+  rs->WaitForInput();
+  rs->ReadIntoBuffer();
+
+  for (size_t i = 0; i < s.length(); i++)
+  {
+    char c = *(char *)(bufferPointer + i);
+    TEST_ASSERT_EQUAL_CHAR_MESSAGE(s.charAt(i), c, "BufferPointer not retrieved correctly, it does not contain chars");
+  }
+}
+
+void test_WriteBuffer(void)
+{
+  int length = 64;
+  char buffer[length];
+  for (size_t i = 0; i < length; i++)
+  {
+    buffer[i] = 0;
+  }
+
+  rs->write(buffer, length);
+  rs->WaitForInput();
+  rs->ReadIntoBuffer();
+
+  const char *readBuffer = rs->GetBuffer();
+  TEST_ASSERT_EQUAL_MEMORY_ARRAY(buffer, readBuffer, length, length);
+}
+
+void test_copyConstructorAndAssignment(void)
+{
+  // Initiate using copy constructor
+  RS485 rsCopy = RS485(*rs);
+  // Initiate using assignment operator
+  RS485 rsDuplicate = *rs;
+
+  // Test if different buffer is used
+  String inputRS = "AAAA";
+  String inputRSCopy = "BBBB";
+  rs->print(inputRS);
+  rsCopy.print(inputRSCopy);
+
+  // Test size in comparison to the sent data
+  TEST_ASSERT_EQUAL_INT(rs->available(), inputRS.length());
+  // Should be equal to rs original
+  TEST_ASSERT_EQUAL_INT(rsDuplicate.available(), rs->available());
+  // Should be equal to input string
+  TEST_ASSERT_EQUAL_INT(rsCopy.available(), inputRSCopy.length());
+
+  // Check if all chars are the same
+  for (size_t i = 0; i < inputRS.length() && i < inputRSCopy.length(); i++)
+  {
+    TEST_ASSERT_NOT_EQUAL_CHAR(rs->read(), rsCopy.read());
+    // Available should shrink with original
+    TEST_ASSERT_EQUAL_INT(rsDuplicate.available(), rs->available());
+  }
+}
 
 /**
  * @brief Entry point to start all tests
@@ -314,6 +373,9 @@ void setup()
   RUN_TEST(test_read_string);
   RUN_TEST(test_available);
   RUN_TEST(test_ReadBuffer);
+  RUN_TEST(test_GetBuffer);
+  RUN_TEST(test_WriteBuffer);
+  RUN_TEST(test_copyConstructorAndAssignment);
 
   UNITY_END(); // Stop unit testing
 }

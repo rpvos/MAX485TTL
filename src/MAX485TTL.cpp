@@ -30,6 +30,24 @@ RS485::RS485(uint8_t de_pin, uint8_t re_pin, Stream *serial, char end_marker, ui
     SetMode(INPUT);
 };
 
+RS485::RS485(const RS485 &rs485)
+{
+    this->de_pin_ = rs485.de_pin_;
+    this->re_pin_ = rs485.re_pin_;
+    this->serial_ = rs485.serial_;
+    this->end_marker_ = rs485.end_marker_;
+    this->buffer_size_ = rs485.buffer_size_;
+    this->buffer_ = new char[this->buffer_size_];
+    this->buffer_cursor_ = 0;
+    this->data_in_buffer_ = false;
+
+    pinMode(de_pin_, OUTPUT);
+    pinMode(re_pin_, OUTPUT);
+
+    mode_ = INPUT;
+    SetMode(INPUT);
+}
+
 RS485::~RS485()
 {
     delete[] buffer_;
@@ -139,11 +157,10 @@ int RS485::ReadIntoBuffer(void)
 {
     SetMode(INPUT);
     int amount_of_chars = 0;
-    char read_character;
 
     while (available() > 0 && data_in_buffer_ == false)
     {
-        read_character = read();
+        char read_character = read();
         amount_of_chars++;
 
         if (read_character != end_marker_)
@@ -175,13 +192,39 @@ int RS485::ReadIntoBuffer(void)
     return amount_of_chars;
 };
 
-void RS485::WaitForInput(int TimeOutInMillisecond)
+void RS485::WaitForInput(unsigned long TimeOutInMillisecond)
 {
     SetMode(INPUT);
 
-    int time = millis();
+    unsigned long time = millis();
     while (((millis() - time) < TimeOutInMillisecond) && !available())
     {
         delay(1);
     }
+}
+
+RS485 &RS485::operator=(const RS485 &otherRS485)
+{
+    // Check for self assignment
+    if (this == &otherRS485)
+    {
+        return *this;
+    }
+
+    this->de_pin_ = otherRS485.de_pin_;
+    this->re_pin_ = otherRS485.re_pin_;
+    this->serial_ = otherRS485.serial_;
+    this->end_marker_ = otherRS485.end_marker_;
+    this->buffer_size_ = otherRS485.buffer_size_;
+    this->buffer_ = otherRS485.buffer_;
+    this->buffer_cursor_ = otherRS485.buffer_cursor_;
+    this->data_in_buffer_ = otherRS485.data_in_buffer_;
+
+    pinMode(de_pin_, OUTPUT);
+    pinMode(re_pin_, OUTPUT);
+
+    mode_ = otherRS485.mode_;
+    SetMode(mode_);
+
+    return *this;
 }
