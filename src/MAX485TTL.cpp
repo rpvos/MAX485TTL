@@ -12,15 +12,23 @@
 #include <Arduino.h>
 #include <max485ttl.h>
 
-RS485::RS485(uint8_t de_pin, uint8_t re_pin, Stream *serial, uint8_t buffer_size, bool use_end_marker, char end_marker)
+RS485::RS485(uint8_t de_pin, uint8_t re_pin, Stream *serial, bool use_buffer, uint8_t buffer_size, bool use_end_marker, char end_marker)
 {
     this->de_pin_ = de_pin;
     this->re_pin_ = re_pin;
     this->serial_ = serial;
+    this->use_buffer_ = use_buffer;
     this->use_end_marker_ = use_end_marker;
     this->end_marker_ = end_marker;
     this->buffer_size_ = buffer_size;
-    this->buffer_ = new char[buffer_size];
+    if (use_buffer)
+    {
+        this->buffer_ = new char[buffer_size];
+    }
+    else
+    {
+        this->buffer_ = nullptr;
+    }
     this->buffer_cursor_ = 0;
     this->data_in_buffer_ = false;
 
@@ -156,6 +164,11 @@ const char *RS485::GetBuffer(void)
 
 int RS485::ReadIntoBuffer(void)
 {
+    if (!use_buffer_)
+    {
+        return -1;
+    }
+
     SetMode(INPUT);
     int amount_of_chars = 0;
 
