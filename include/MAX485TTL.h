@@ -23,11 +23,12 @@ public:
      * @param re_pin Receiver output enable pin number.
      * @param serial Stream to which the data needs to be send.
      * Stream must be opened before passing to this object (Serial.begin(Baudrate))..
-     * @param end_marker Token which is used to determine end of input.
      * @param buffer_size size of buffer used to store input, any input string exceeding this will be terminated on buffersize.
+     * @param use_end_marker true if buffer must be \0 terminated on end_marker
+     * @param end_marker Token which is used to determine end of input.
      * So make sure the buffer is big enough to store even the longest input.
      */
-    RS485(uint8_t de_pin, uint8_t re_pin, Stream *serial, char end_marker = '\n', uint8_t buffer_size = 64);
+    RS485(uint8_t de_pin, uint8_t re_pin, Stream *serial, uint8_t buffer_size = 64, bool use_end_marker = true, char end_marker = '\n');
 
     /**
      * @brief Copy constructor
@@ -139,6 +140,7 @@ private:
 
     uint8_t mode_;
 
+    bool use_end_marker_;
     char end_marker_;
     bool data_in_buffer_;
     uint8_t buffer_size_;
