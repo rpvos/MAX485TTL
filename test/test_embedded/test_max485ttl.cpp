@@ -12,7 +12,7 @@
 #include <Arduino.h>
 #include <unity.h>
 #include "max485ttl.h"
-#include "memory_stream.h"
+#include <memory_stream.h>
 
 #define DE_PORT 2
 #define RE_PORT 3
@@ -50,8 +50,8 @@ void setUp(void)
  */
 void tearDown(void)
 {
-  delete rs;
-  delete stream;
+  rs->~RS485();
+  stream->~MemoryStream();
 }
 
 /**
@@ -255,7 +255,7 @@ void test_ReadBuffer(void)
 
   if (rs->IsDataInBuffer() && amount != 0)
   {
-    String output = rs->ReadBuffer();
+    String output = rs->ReadStringBuffer();
     TEST_ASSERT_EQUAL_STRING_MESSAGE(input.c_str(), output.c_str(), "Reading buffer did not return input");
   }
   else
@@ -281,7 +281,7 @@ void test_ReadBuffer(void)
 
   if (rs->IsDataInBuffer() && amount != 0)
   {
-    String output = rs->ReadBuffer();
+    String output = rs->ReadStringBuffer();
     TEST_ASSERT_EQUAL_STRING_MESSAGE(input2.c_str(), output.c_str(), "Reading buffer did not return input");
   }
   else
@@ -301,14 +301,14 @@ void test_GetBuffer(void)
 
   for (size_t i = 0; i < s.length(); i++)
   {
-    char c = *(char *)(bufferPointer + i);
+    char c = bufferPointer[i];
     TEST_ASSERT_EQUAL_CHAR_MESSAGE(s.charAt(i), c, "BufferPointer not retrieved correctly, it does not contain chars");
   }
 }
 
 void test_WriteBuffer(void)
 {
-  int length = 64;
+  size_t length = 64;
   char buffer[length];
   for (size_t i = 0; i < length; i++)
   {
@@ -320,35 +320,46 @@ void test_WriteBuffer(void)
   rs->ReadIntoBuffer();
 
   const char *readBuffer = rs->GetBuffer();
-  TEST_ASSERT_EQUAL_MEMORY_ARRAY(buffer, readBuffer, length, length);
+
+  for (size_t i = 0; i < length; i++)
+  {
+    TEST_ASSERT_EQUAL_CHAR(readBuffer[i], buffer[i]);
+  }
 }
 
-void test_copyConstructorAndAssignment(void)
+void test_Constructors(void)
 {
   // Initiate using copy constructor
   RS485 rsCopy = RS485(*rs);
   // Initiate using assignment operator
-  RS485 rsDuplicate = *rs;
+  RS485 rsAssign = *rs;
 
   // Test if different buffer is used
   String inputRS = "AAAA";
   String inputRSCopy = "BBBB";
+  String inputRSAssign = "CCCC";
+  // Print and read into buffer
   rs->print(inputRS);
+  rs->ReadIntoBuffer();
+
   rsCopy.print(inputRSCopy);
+  rsCopy.ReadIntoBuffer();
 
-  // Test size in comparison to the sent data
-  TEST_ASSERT_EQUAL_INT(rs->available(), inputRS.length());
-  // Should be equal to rs original
-  TEST_ASSERT_EQUAL_INT(rsDuplicate.available(), rs->available());
-  // Should be equal to input string
-  TEST_ASSERT_EQUAL_INT(rsCopy.available(), inputRSCopy.length());
+  rsAssign.print(inputRSAssign);
+  rsAssign.ReadIntoBuffer();
 
-  // Check if all chars are the same
-  for (size_t i = 0; i < inputRS.length() && i < inputRSCopy.length(); i++)
+  // Should not be equal to rs original
+  TEST_ASSERT_NOT_EQUAL_INT(rs->BufferPeek(), rsCopy.BufferPeek());
+  TEST_ASSERT_NOT_EQUAL_INT(rs->BufferPeek(), rsAssign.BufferPeek());
+
+  // Check if all chars are different
+  while (rs->BufferAvailable() || rsCopy.BufferAvailable() || rsAssign.BufferAvailable())
   {
-    TEST_ASSERT_NOT_EQUAL_CHAR(rs->read(), rsCopy.read());
-    // Available should shrink with original
-    TEST_ASSERT_EQUAL_INT(rsDuplicate.available(), rs->available());
+    char original = rs->BufferRead();
+    char copy = rsCopy.BufferRead();
+    char assign = rsAssign.BufferRead();
+    TEST_ASSERT_NOT_EQUAL_CHAR(original, copy);
+    TEST_ASSERT_NOT_EQUAL_CHAR(original, assign);
   }
 }
 
@@ -375,7 +386,7 @@ void setup()
   RUN_TEST(test_ReadBuffer);
   RUN_TEST(test_GetBuffer);
   RUN_TEST(test_WriteBuffer);
-  RUN_TEST(test_copyConstructorAndAssignment);
+  RUN_TEST(test_Constructors);
 
   UNITY_END(); // Stop unit testing
 }

@@ -89,7 +89,7 @@ public:
     virtual void flush(void) override;
 
     /**
-     * @brief Function to check if data is stored in buffer.
+     * @brief Function to check if full message is stored in buffer. This is toggled when end marker is found.
      *
      * @return true when data is stored.
      * @return false when buffer is empty.
@@ -97,11 +97,32 @@ public:
     bool IsDataInBuffer(void);
 
     /**
+     * @brief Function used to read all available bytes
+     *
+     * @return int amount of bytes in buffer
+     */
+    int BufferAvailable(void);
+
+    /**
+     * @brief Function used to peek ar first character in buffer
+     *
+     * @return char first character in buffer
+     */
+    char BufferPeek(void);
+
+    /**
+     * @brief Function used to read first character of buffer
+     *
+     * @return char first character in buffer
+     */
+    char BufferRead(void);
+
+    /**
      * @brief Function used to read the data out of the buffer.
      *
      * @return const char* data in buffer to end marker.
      */
-    const char *ReadBuffer(void);
+    const char *ReadStringBuffer(void);
 
     /**
      * @brief Function used to read the stream and put the data into the buffer.
@@ -146,7 +167,8 @@ private:
     bool data_in_buffer_;
     bool use_buffer_;
     uint8_t buffer_size_;
-    uint8_t buffer_cursor_;
+    uint8_t buffer_write_cursor_;
+    uint8_t buffer_read_cursor_;
     char *buffer_;
 };
 

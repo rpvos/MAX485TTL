@@ -29,7 +29,10 @@ RS485::RS485(uint8_t de_pin, uint8_t re_pin, Stream *serial, bool use_buffer, ui
     {
         this->buffer_ = nullptr;
     }
-    this->buffer_cursor_ = 0;
+    uint8_t buffer_write_cursor = 0;
+    uint8_t buffer_read_cursor = 0;
+    this->buffer_write_cursor_ = buffer_write_cursor;
+    this->buffer_read_cursor_ = buffer_read_cursor;
     this->data_in_buffer_ = false;
 
     pinMode(de_pin, OUTPUT);
@@ -46,15 +49,20 @@ RS485::RS485(const RS485 &rs485)
     this->serial_ = rs485.serial_;
     this->end_marker_ = rs485.end_marker_;
     this->buffer_size_ = rs485.buffer_size_;
-    this->buffer_ = new char[this->buffer_size_];
-    this->buffer_cursor_ = 0;
+    if (rs485.use_buffer_)
+    {
+        this->buffer_ = new char[this->buffer_size_];
+    }
+    else
+    {
+        this->buffer_ = nullptr;
+    }
+    uint8_t buffer_write_cursor = 0;
+    uint8_t buffer_read_cursor = 0;
+    this->buffer_write_cursor_ = buffer_write_cursor;
+    this->buffer_read_cursor_ = buffer_read_cursor;
     this->data_in_buffer_ = false;
-
-    pinMode(de_pin_, OUTPUT);
-    pinMode(re_pin_, OUTPUT);
-
-    mode_ = INPUT;
-    SetMode(INPUT);
+    this->mode_ = rs485.mode_;
 }
 
 RS485::~RS485()
@@ -146,7 +154,7 @@ bool RS485::IsDataInBuffer(void)
     return data_in_buffer_;
 }
 
-const char *RS485::ReadBuffer(void)
+const char *RS485::ReadStringBuffer(void)
 {
     if (data_in_buffer_)
     {
@@ -160,6 +168,36 @@ const char *RS485::ReadBuffer(void)
 const char *RS485::GetBuffer(void)
 {
     return buffer_;
+}
+
+char RS485::BufferPeek(void)
+{
+    if (BufferAvailable())
+    {
+        return buffer_[buffer_read_cursor_];
+    }
+    return 0;
+}
+
+char RS485::BufferRead(void)
+{
+    if (BufferAvailable())
+    {
+        char c = buffer_[buffer_read_cursor_];
+        if (buffer_read_cursor_ <= buffer_write_cursor_ - 1U)
+        {
+            buffer_read_cursor_ = 0;
+            buffer_write_cursor_ = 0;
+        }
+
+        return c;
+    }
+    return 0;
+}
+
+int RS485::BufferAvailable(void)
+{
+    return buffer_write_cursor_ - buffer_read_cursor_;
 }
 
 int RS485::ReadIntoBuffer(void)
@@ -179,26 +217,26 @@ int RS485::ReadIntoBuffer(void)
 
         if (read_character != end_marker_ || !use_end_marker_)
         {
-            buffer_[buffer_cursor_] = read_character;
-            buffer_cursor_++;
-            if (buffer_cursor_ >= buffer_size_)
+            buffer_[buffer_write_cursor_] = read_character;
+            buffer_write_cursor_++;
+            if (buffer_write_cursor_ >= buffer_size_)
             {
-                buffer_cursor_ = buffer_size_ - 1;
+                buffer_write_cursor_ = buffer_size_ - 1;
             }
         }
         else
         {
             // Check for edge case of \r\n as two characters
-            if (buffer_cursor_ > 0)
+            if (buffer_write_cursor_ > 0)
             {
-                if (buffer_[buffer_cursor_ - 1] == '\r')
+                if (buffer_[buffer_write_cursor_ - 1] == '\r')
                 {
-                    buffer_[buffer_cursor_ - 1] = '\0'; // terminate the string on \r
+                    buffer_[buffer_write_cursor_ - 1] = '\0'; // terminate the string on \r
                 }
             }
 
-            buffer_[buffer_cursor_] = '\0'; // terminate the string
-            buffer_cursor_ = 0;
+            buffer_[buffer_write_cursor_] = '\0'; // terminate the string
+            buffer_write_cursor_ = 0;
             data_in_buffer_ = true;
         }
     }
@@ -230,15 +268,18 @@ RS485 &RS485::operator=(const RS485 &otherRS485)
     this->serial_ = otherRS485.serial_;
     this->end_marker_ = otherRS485.end_marker_;
     this->buffer_size_ = otherRS485.buffer_size_;
-    this->buffer_ = otherRS485.buffer_;
-    this->buffer_cursor_ = otherRS485.buffer_cursor_;
+    if (this->buffer_)
+    {
+        delete[] this->buffer_;
+    }
+
+    this->buffer_ = new char[this->buffer_size_];
+    memcpy(this->buffer_, otherRS485.buffer_, buffer_size_);
+    this->buffer_write_cursor_ = otherRS485.buffer_write_cursor_;
+    this->buffer_read_cursor_ = otherRS485.buffer_read_cursor_;
     this->data_in_buffer_ = otherRS485.data_in_buffer_;
 
-    pinMode(de_pin_, OUTPUT);
-    pinMode(re_pin_, OUTPUT);
-
     mode_ = otherRS485.mode_;
-    SetMode(mode_);
 
     return *this;
 }

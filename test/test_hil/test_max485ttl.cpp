@@ -38,7 +38,7 @@ void setUp(void)
  */
 void tearDown(void)
 {
-    delete rs;
+    rs->~RS485();
     Serial1.end();
 };
 
@@ -51,7 +51,6 @@ void test_single_byte(void)
     char input = 'S';
     rs->write(input);
     rs->flush();
-    rs->SetMode(INPUT);
     // Wait for the byte to be sent back
     rs->WaitForInput();
 
@@ -110,7 +109,7 @@ void test_reading_buffer(void)
 
     if (rs->IsDataInBuffer())
     {
-        String output = rs->ReadBuffer();
+        String output = rs->ReadStringBuffer();
         // \n is removed because it is the end marker
         output += "\n";
         TEST_ASSERT_EQUAL_STRING_MESSAGE(input.c_str(), output.c_str(), "String was not put correctly into buffer or retrieved from buffer");
