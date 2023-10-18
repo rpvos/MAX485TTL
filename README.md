@@ -17,6 +17,8 @@ This library helps user to easyly set the modules to output and back to input.
 
 ![Wiring schematic](images/MAX485TTL_schem.svg)
 
+Tying RE and DE together to 1 output can also be done, these will always be the same value. This will save 1 IO port.
+
 ## Best practices
 The modules work best when always set to input unless data needs to be sent.
 

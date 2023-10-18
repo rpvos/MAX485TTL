@@ -63,7 +63,7 @@ RS485::RS485(const RS485 &rs485)
     this->buffer_read_cursor_ = buffer_read_cursor;
     this->data_in_buffer_ = false;
     this->mode_ = rs485.mode_;
-}
+};
 
 RS485::~RS485()
 {
@@ -81,14 +81,22 @@ void RS485::SetMode(uint8_t new_mode)
     if (new_mode == INPUT)
     {
         digitalWrite(de_pin_, LOW);
-        digitalWrite(re_pin_, LOW);
+        if (re_pin_ != de_pin_)
+        {
+            digitalWrite(re_pin_, LOW);
+        }
+
         mode_ = new_mode;
         return;
     }
     else if (new_mode == OUTPUT)
     {
         digitalWrite(de_pin_, HIGH);
-        digitalWrite(re_pin_, HIGH);
+        if (re_pin_ != de_pin_)
+        {
+            digitalWrite(re_pin_, HIGH);
+        }
+
         mode_ = new_mode;
         return;
     }

@@ -5,21 +5,22 @@
 #define RS485_RE_PIN 3
 
 RS485 *rs;
-String output;
 
 void setup()
 {
     Serial.begin(9600);
-    Serial1.begin(115200);
+    Serial1.begin(9600);
     rs = new RS485(2, 3, &Serial1);
 }
 
 void loop()
 {
-    rs->WaitForInput();
+    rs->SetMode(OUTPUT);
+    rs->print("AAAA");
+    rs->flush();
+    rs->WaitForInput(10);
     if (rs->available())
     {
-        String s = rs->readString();
-        rs->print(s);
+        Serial.println(rs->readString());
     }
 }

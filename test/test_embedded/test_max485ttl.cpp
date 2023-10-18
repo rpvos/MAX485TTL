@@ -11,7 +11,7 @@
 
 #include <Arduino.h>
 #include <unity.h>
-#include "max485ttl.h"
+#include <max485ttl.h>
 #include <memory_stream.h>
 
 #define DE_PORT 2

@@ -13,8 +13,10 @@
 #include <unity.h>
 #include "max485ttl.h"
 
-#define DE_PORT 2
-#define RE_PORT 3
+const long kPerformaceTestAmount = 1000000;
+const uint8_t de_port = 2;
+const uint8_t re_port = 3;
+HardwareSerial *serial = &Serial1;
 
 /**
  * @brief The object that is being tested
@@ -28,8 +30,8 @@ RS485 *rs;
  */
 void setUp(void)
 {
-    Serial1.begin(115200);
-    rs = new RS485(DE_PORT, RE_PORT, &Serial1);
+    serial->begin(115200);
+    rs = new RS485(de_port, re_port, serial);
 };
 
 /**
@@ -46,7 +48,7 @@ void tearDown(void)
  * @brief Test for a single byte input and output
  *
  */
-void test_single_byte(void)
+void test_Write(void)
 {
     char input = 'S';
     rs->write(input);
@@ -69,7 +71,7 @@ void test_single_byte(void)
  * @brief Test for a string input and output
  *
  */
-void test_string(void)
+void test_Print(void)
 {
     String input = "AAAABBBBCCCCDDDD";
     rs->print(input);
@@ -93,7 +95,7 @@ void test_string(void)
  * @brief Test for using the read buffer
  *
  */
-void test_reading_buffer(void)
+void test_Buffer(void)
 {
     String input = "AAAABBBBCCCCDDDDEEEEFFFFGGGGHHHHIIIIJJJJ\n";
     rs->print(input);
@@ -117,6 +119,51 @@ void test_reading_buffer(void)
 };
 
 /**
+ * @brief Test to determine if 2000000 messages could be send and received without error
+ *
+ */
+void test_SendReceive(void)
+{
+    int number = rand();
+    rs->println(number);
+    rs->flush();
+
+    rs->WaitForInput();
+    if (rs->available())
+    {
+        int read_count = strtol(rs->readString().c_str(), nullptr, 10);
+        if (read_count == 0)
+        {
+            TEST_FAIL_MESSAGE("No number was received");
+        }
+
+        TEST_ASSERT_EQUAL_MESSAGE(number, read_count, "Number was not the same");
+    }
+    else
+    {
+        TEST_FAIL_MESSAGE("No message was received");
+    }
+}
+
+void test_PerformanceTest(void)
+{
+#ifndef PERFORMANCE_TEST
+    TEST_IGNORE_MESSAGE("Ignored performance, to turn on define PERFORMANCE_TEST");
+#endif
+    unsigned long start_time = millis();
+
+    for (long i = 0; i < kPerformaceTestAmount; i++)
+    {
+        test_SendReceive();
+    }
+
+    unsigned long end_time = millis();
+    String output = String("Performance test completed in: ");
+    output += (end_time - start_time);
+    TEST_MESSAGE(output.c_str());
+}
+
+/**
  * @brief Entry point to start all tests
  *
  */
@@ -128,9 +175,11 @@ void setup()
 
     UNITY_BEGIN(); // Start unit testing
 
-    RUN_TEST(test_single_byte);
-    RUN_TEST(test_string);
-    RUN_TEST(test_reading_buffer);
+    RUN_TEST(test_Write);
+    RUN_TEST(test_Print);
+    RUN_TEST(test_Buffer);
+    RUN_TEST(test_SendReceive);
+    RUN_TEST(test_PerformanceTest);
 
     UNITY_END(); // Stop unit testing
 };
