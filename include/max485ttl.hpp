@@ -79,7 +79,7 @@ public:
     size_t write(uint8_t buffer[], size_t length);
 
     /**
-     * @brief Flushes the write buffer and set mode to input.
+     * @brief Flushes the write buffer.
      *
      */
     void flush(void);

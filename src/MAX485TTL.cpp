@@ -114,12 +114,11 @@ size_t RS485::write(uint8_t data)
 
 size_t RS485::write(uint8_t buffer[], size_t length)
 {
-    size_t counter = 0;
     for (size_t i = 0; i < length; i++)
     {
-        counter += write(buffer[i]);
+        write(buffer[i]);
     }
-    return counter;
+    return length;
 }
 
 void RS485::flush(void)
@@ -127,7 +126,6 @@ void RS485::flush(void)
     if (serial_)
     {
         serial_->flush();
-        SetMode(INPUT);
     }
 }
 
