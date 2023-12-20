@@ -12,7 +12,7 @@
 #include <Arduino.h>
 #include "max485ttl.hpp"
 
-RS485::RS485(uint8_t de_pin, uint8_t re_pin, Stream *serial)
+RS485::RS485(const uint8_t de_pin, const uint8_t re_pin, Stream *const serial)
 {
     this->de_pin_ = de_pin;
     this->re_pin_ = re_pin;
@@ -72,7 +72,7 @@ void RS485::SetMode(uint8_t new_mode)
     return;
 }
 
-int RS485::available(void)
+int16_t RS485::available(void)
 {
     if (serial_)
     {
@@ -82,7 +82,7 @@ int RS485::available(void)
     return -1;
 }
 
-int RS485::peek(void)
+int16_t RS485::peek(void)
 {
     if (serial_)
     {
@@ -92,7 +92,7 @@ int RS485::peek(void)
     return -1;
 }
 
-int RS485::read(void)
+int16_t RS485::read(void)
 {
     if (serial_)
     {
@@ -102,7 +102,7 @@ int RS485::read(void)
     return -1;
 }
 
-size_t RS485::write(uint8_t data)
+size_t RS485::write(const uint8_t data)
 {
     if (serial_)
     {
@@ -112,7 +112,7 @@ size_t RS485::write(uint8_t data)
     return -1;
 }
 
-size_t RS485::write(uint8_t buffer[], size_t length)
+size_t RS485::write(const uint8_t *const buffer, const size_t length)
 {
     for (size_t i = 0; i < length; i++)
     {
@@ -129,7 +129,7 @@ void RS485::flush(void)
     }
 }
 
-void RS485::WaitForInput(unsigned long TimeOutInMillisecond)
+void RS485::WaitForInput(const unsigned long TimeOutInMillisecond)
 {
     unsigned long time = millis();
     while (((millis() - time) < TimeOutInMillisecond) && !available())

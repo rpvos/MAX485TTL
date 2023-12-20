@@ -25,7 +25,7 @@ public:
      * @param serial Stream to which the data needs to be send.
      * Stream must be opened before passing to this object (Serial.begin(Baudrate))..
      */
-    RS485(uint8_t de_pin, uint8_t re_pin, Stream *serial);
+    RS485(const uint8_t de_pin, const uint8_t re_pin, Stream *const serial);
 
     /**
      * @brief Copy constructor
@@ -52,21 +52,21 @@ public:
      *
      * @return Number of bytes available, if stream not available -1.
      */
-    int available(void);
+    int16_t available(void);
 
     /**
      * @brief Function used to read the first byte of the incomming data.
      *
      * @return first byte or -1 if not available.
      */
-    int read(void);
+    int16_t read(void);
 
     /**
      * @brief Function used to look at the first byte of the input buffer without taking it out.
      *
      * @return First character of the buffer, if stream not available -1.
      */
-    int peek(void);
+    int16_t peek(void);
 
     /**
      * @brief Function to send a single byte.
@@ -74,9 +74,9 @@ public:
      * @param data the byte that will be sent.
      * @return true if succesfull, if stream not available -1.
      */
-    size_t write(uint8_t data);
+    size_t write(const uint8_t data);
 
-    size_t write(uint8_t buffer[], size_t length);
+    size_t write(const uint8_t *const buffer, const size_t length);
 
     /**
      * @brief Flushes the write buffer.
@@ -89,7 +89,7 @@ public:
      *
      * @param TimeOutInMillis duration of the maximum wait in Millisecond
      */
-    void WaitForInput(unsigned long TimeOutInMillisecond = 2000);
+    void WaitForInput(const unsigned long TimeOutInMillisecond = 2000);
 
     /**
      * @brief Overload = operator because use of dynamic memory
