@@ -112,7 +112,26 @@ size_t RS485::write(const uint8_t data)
     return -1;
 }
 
+size_t RS485::write(const char data)
+{
+    if (serial_)
+    {
+        return serial_->write(data);
+    }
+
+    return -1;
+}
+
 size_t RS485::write(const uint8_t *const buffer, const size_t length)
+{
+    for (size_t i = 0; i < length; i++)
+    {
+        write(buffer[i]);
+    }
+    return length;
+}
+
+size_t RS485::write(const char *const buffer, const size_t length)
 {
     for (size_t i = 0; i < length; i++)
     {

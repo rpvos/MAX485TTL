@@ -75,8 +75,10 @@ public:
      * @return true if succesfull, if stream not available -1.
      */
     size_t write(const uint8_t data);
+    size_t write(const char data);
 
     size_t write(const uint8_t *const buffer, const size_t length);
+    size_t write(const char *const buffer, const size_t length);
 
     /**
      * @brief Flushes the write buffer.
