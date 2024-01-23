@@ -24,7 +24,7 @@
         "atmelavr"
     ],
     "headers": [
-        "MAX485TTL.h"
+        "max485ttl.hpp"
     ],
     "examples": [],
     "dependencies": [],
