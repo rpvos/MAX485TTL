@@ -72,7 +72,7 @@ void RS485::SetMode(uint8_t new_mode)
     return;
 }
 
-int16_t RS485::available(void)
+int32_t RS485::available(void)
 {
     if (serial_)
     {
@@ -82,7 +82,7 @@ int16_t RS485::available(void)
     return -1;
 }
 
-int16_t RS485::peek(void)
+int32_t RS485::peek(void)
 {
     if (serial_)
     {
@@ -92,7 +92,7 @@ int16_t RS485::peek(void)
     return -1;
 }
 
-int16_t RS485::read(void)
+int32_t RS485::read(void)
 {
     if (serial_)
     {

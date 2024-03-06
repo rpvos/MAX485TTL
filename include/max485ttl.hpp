@@ -52,21 +52,21 @@ public:
      *
      * @return Number of bytes available, if stream not available -1.
      */
-    int16_t available(void);
+    int32_t available(void);
 
     /**
      * @brief Function used to read the first byte of the incomming data.
      *
      * @return first byte or -1 if not available.
      */
-    int16_t read(void);
+    int32_t read(void);
 
     /**
      * @brief Function used to look at the first byte of the input buffer without taking it out.
      *
      * @return First character of the buffer, if stream not available -1.
      */
-    int16_t peek(void);
+    int32_t peek(void);
 
     /**
      * @brief Function to send a single byte.
